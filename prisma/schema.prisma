@@ -25,15 +25,21 @@ model Season {
 
 // AI 项目
 model Project {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  url         String
-  imageUrl    String?
-  award       String?  // UNREPLACEABLE | USELESS | null
-  seasonId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  slug            String   @unique // URL slug，唯一标识
+  name            String
+  description     String
+  longDescription String?  // 详细介绍，支持 Markdown
+  url             String   // 体验链接
+  githubUrl       String?  // GitHub / 官网链接（可选）
+  imageUrl        String?
+  award           String?  // UNREPLACEABLE | USELESS | null
+  judgeComment    String?  // 评委点评内容
+  judgeNickname   String?  // 评委昵称
+  isActive        Boolean  @default(true) // false 表示已下架
+  seasonId        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   season   Season    @relation(fields: [seasonId], references: [id])
   likes    Like[]
@@ -42,14 +48,16 @@ model Project {
 
 // 提名 / 自荐
 model Submission {
-  id             String   @id @default(cuid())
-  projectName    String
-  projectUrl     String
-  description    String
-  submitterEmail String?
-  status         String   @default("PENDING") // PENDING | APPROVED | REJECTED
-  seasonId       String
-  createdAt      DateTime @default(now())
+  id                 String   @id @default(cuid())
+  projectName        String
+  projectUrl         String
+  description        String
+  submitterEmail     String?
+  submitterNickname  String?  // 自荐人昵称
+  isPublic           Boolean  @default(false) // 是否公开自荐人信息
+  status             String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  seasonId           String
+  createdAt          DateTime @default(now())
 
   season Season @relation(fields: [seasonId], references: [id])
 }

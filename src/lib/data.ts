@@ -2,11 +2,17 @@ import { prisma } from './prisma'
 
 export type ProjectWithCounts = {
   id: string
+  slug: string
   name: string
   description: string
+  longDescription: string | null
   url: string
+  githubUrl: string | null
   imageUrl: string | null
   award: string | null
+  judgeComment: string | null
+  judgeNickname: string | null
+  isActive: boolean
   seasonId: string
   createdAt: Date
   updatedAt: Date
@@ -33,6 +39,7 @@ export async function getActiveSeason(): Promise<SeasonWithProjects | null> {
     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     include: {
       projects: {
+        where: { isActive: true },
         include: {
           _count: { select: { likes: true, comments: true } },
         },
@@ -51,4 +58,29 @@ export function getHighlightProjects(projects: ProjectWithCounts[], limit = 3) {
     .filter((p) => p.award === null)
     .sort((a, b) => b._count.likes - a._count.likes)
   return [...awarded, ...rest].slice(0, limit)
+}
+
+/** 通过 slug 获取单个项目详情（含届次信息） */
+export async function getProjectBySlug(slug: string): Promise<
+  | (ProjectWithCounts & {
+      season: {
+        id: string
+        name: string
+        status: string
+      }
+    })
+  | null
+> {
+  const project = await prisma.project.findUnique({
+    where: { slug },
+    include: {
+      season: {
+        select: { id: true, name: true, status: true },
+      },
+      _count: { select: { likes: true, comments: true } },
+    },
+  })
+  return project as (ProjectWithCounts & {
+    season: { id: string; name: string; status: string }
+  }) | null
 }

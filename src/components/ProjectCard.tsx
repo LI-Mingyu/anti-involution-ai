@@ -10,7 +10,7 @@ type Props = {
 export default function ProjectCard({ project, highlight = false }: Props) {
   return (
     <Link
-      href={`/project/${project.id}`}
+      href={`/ai/${project.slug || project.id}`}
       className={`group block rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 ${highlight ? 'border-amber-300 ring-1 ring-amber-200' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between gap-2">
