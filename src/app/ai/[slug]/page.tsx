@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getProjectBySlug } from '@/lib/data'
+import { getProjectBySlug, type ProjectDetail } from '@/lib/data'
 import AwardBadge from '@/components/AwardBadge'
 
 type Props = {
@@ -37,7 +37,7 @@ function renderMarkdown(text: string): string {
 
 export default async function ProjectDetailPage({ params }: Props) {
   const { slug } = await params
-  const project = await getProjectBySlug(slug)
+  const project: ProjectDetail | null = await getProjectBySlug(slug)
 
   // 项目不存在或已下架
   if (!project || !project.isActive) {
@@ -45,6 +45,8 @@ export default async function ProjectDetailPage({ params }: Props) {
   }
 
   const hasJudgeComment = project.judgeComment && project.judgeComment.trim().length > 0
+  // 是否有公开的自荐记录
+  const selfSubmission = project.submissions.length > 0 ? project.submissions[0] : null
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -110,6 +112,18 @@ export default async function ProjectDetailPage({ params }: Props) {
               </a>
             )}
           </div>
+
+          {/* 作者自荐标签（isPublic=true 且 status=APPROVED 才显示） */}
+          {selfSubmission && (
+            <div className="flex items-center gap-2 pt-1">
+              <span className="inline-flex items-center gap-1 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                ✍️ 作者自荐
+              </span>
+              {selfSubmission.submitterNickname && (
+                <span className="text-xs text-gray-500">by {selfSubmission.submitterNickname}</span>
+              )}
+            </div>
+          )}
         </section>
 
         {/* ── 评委点评区（有内容才显示） ── */}

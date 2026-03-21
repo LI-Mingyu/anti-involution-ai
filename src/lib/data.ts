@@ -60,17 +60,25 @@ export function getHighlightProjects(projects: ProjectWithCounts[], limit = 3) {
   return [...awarded, ...rest].slice(0, limit)
 }
 
-/** 通过 slug 获取单个项目详情（含届次信息） */
-export async function getProjectBySlug(slug: string): Promise<
-  | (ProjectWithCounts & {
-      season: {
-        id: string
-        name: string
-        status: string
-      }
-    })
-  | null
-> {
+export type SubmissionPublic = {
+  id: string
+  submitterNickname: string | null
+  isPublic: boolean
+  status: string
+}
+
+export type ProjectDetail = ProjectWithCounts & {
+  season: {
+    id: string
+    name: string
+    status: string
+  }
+  /** 公开的自荐记录（isPublic=true 且 status=APPROVED） */
+  submissions: SubmissionPublic[]
+}
+
+/** 通过 slug 获取单个项目详情（含届次信息 & 公开自荐记录） */
+export async function getProjectBySlug(slug: string): Promise<ProjectDetail | null> {
   const project = await prisma.project.findUnique({
     where: { slug },
     include: {
@@ -78,9 +86,11 @@ export async function getProjectBySlug(slug: string): Promise<
         select: { id: true, name: true, status: true },
       },
       _count: { select: { likes: true, comments: true } },
+      submissions: {
+        where: { status: 'APPROVED', isPublic: true },
+        select: { id: true, submitterNickname: true, isPublic: true, status: true },
+      },
     },
   })
-  return project as (ProjectWithCounts & {
-    season: { id: string; name: string; status: string }
-  }) | null
+  return project as ProjectDetail | null
 }
