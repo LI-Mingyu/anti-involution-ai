@@ -58,13 +58,66 @@
 
 ## 技术栈
 
-> 待程序员填写
+| 分类 | 选型 | 理由 |
+|------|------|------|
+| **框架** | Next.js 14 (App Router) + TypeScript | SSR/SSG 满足 SEO 需求；App Router 支持 Server Components，首屏性能好 |
+| **样式** | Tailwind CSS | 开发速度快，响应式设计友好 |
+| **数据库** | SQLite（开发）/ PostgreSQL（生产） | SQLite 零配置方便本地开发；生产用 PostgreSQL 保证可靠性 |
+| **ORM** | Prisma | 类型安全，迁移管理规范，与 Next.js 生态契合 |
+| **部署** | Vercel（前端）+ Railway（数据库） | Vercel 与 Next.js 原生集成；Railway 托管 PostgreSQL 省心 |
+| **代码规范** | ESLint + Prettier | 统一团队代码风格 |
 
 ---
 
 ## 开发指南
 
-> 待程序员填写（本地启动、环境变量配置等）
+### 本地启动
+
+```bash
+# 1. 安装依赖
+npm install
+
+# 2. 配置环境变量（复制示例文件）
+cp .env.example .env
+# 编辑 .env，默认使用 SQLite 无需额外配置
+
+# 3. 初始化数据库
+npx prisma db push
+
+# 4. 启动开发服务器
+npm run dev
+```
+
+浏览器访问 http://localhost:3000
+
+### 环境变量
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `DATABASE_URL` | 数据库连接串 | `file:./dev.db`（SQLite） |
+
+### 数据库操作
+
+```bash
+# 查看数据库（GUI）
+npx prisma studio
+
+# 应用 Schema 变更
+npx prisma db push
+
+# 生成 Prisma Client
+npx prisma generate
+```
+
+### 数据库 Schema
+
+```
+Season     — 届次（UPCOMING / ACTIVE / ARCHIVED）
+Project    — AI 项目（关联 Season，含奖项字段）
+Submission — 提名/自荐（PENDING / APPROVED / REJECTED）
+Like       — 点赞（fingerprint 防刷，唯一约束）
+Comment    — 匿名评论
+```
 
 ---
 
