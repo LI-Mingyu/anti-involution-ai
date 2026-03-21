@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// 届次
+model Season {
+  id        String    @id @default(cuid())
+  name      String    // e.g. "第一届"
+  status    String    @default("UPCOMING") // UPCOMING | ACTIVE | ARCHIVED
+  startAt   DateTime?
+  endAt     DateTime?
+  createdAt DateTime  @default(now())
+
+  projects    Project[]
+  submissions Submission[]
+}
+
+// AI 项目
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  url         String
+  imageUrl    String?
+  award       String?  // UNREPLACEABLE | USELESS | null
+  seasonId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  season   Season    @relation(fields: [seasonId], references: [id])
+  likes    Like[]
+  comments Comment[]
+}
+
+// 提名 / 自荐
+model Submission {
+  id             String   @id @default(cuid())
+  projectName    String
+  projectUrl     String
+  description    String
+  submitterEmail String?
+  status         String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  seasonId       String
+  createdAt      DateTime @default(now())
+
+  season Season @relation(fields: [seasonId], references: [id])
+}
+
+// 点赞（无需注册，fingerprint 防刷）
+model Like {
+  id          String   @id @default(cuid())
+  projectId   String
+  fingerprint String   // browser fingerprint for dedup
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@unique([projectId, fingerprint])
+}
+
+// 评论（匿名）
+model Comment {
+  id        String   @id @default(cuid())
+  projectId String
+  content   String
+  nickname  String   @default("匿名用户")
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+}
