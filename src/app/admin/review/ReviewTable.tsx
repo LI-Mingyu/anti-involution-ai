@@ -16,6 +16,7 @@ type Submission = {
   projectName: string
   projectUrl: string
   description: string
+  recommendReason: string | null
   awardCategory: string | null
   submitterEmail: string | null
   submitterNickname: string | null
@@ -236,6 +237,7 @@ export default function ReviewTable({ submissions }: { submissions: Submission[]
                 <a href={preview.projectUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline break-all">{preview.projectUrl}</a>
               </p>
               <p><span className="font-medium text-gray-500">介绍：</span>{preview.description}</p>
+                      {preview.recommendReason && <p><span className="font-medium text-gray-500">推荐理由：</span>{preview.recommendReason}</p>}
               {preview.submitterNickname && <p><span className="font-medium text-gray-500">提交者：</span>{preview.submitterNickname}</p>}
               {preview.submitterEmail && <p><span className="font-medium text-gray-500">邮箱：</span>{preview.submitterEmail}</p>}
               {preview.rejectNote && <p><span className="font-medium text-gray-500">拒绝备注：</span>{preview.rejectNote}</p>}

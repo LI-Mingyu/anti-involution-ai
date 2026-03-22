@@ -71,6 +71,7 @@ model Submission {
   projectName        String
   projectUrl         String
   description        String
+  recommendReason    String?  // 推荐理由（为什么值得上榜）
   awardCategory      String?  // UNREPLACEABLE | USELESS | null（申报奖项）
   submitterEmail     String?
   submitterNickname  String?  // 自荐人昵称
