@@ -6,7 +6,7 @@ import { verifySessionToken, SESSION_COOKIE } from '@/lib/session'
  * - 未登录 → 重定向到 /admin/login
  * - 生产环境 + HTTP → 重定向到 HTTPS
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // 生产环境强制 HTTPS
