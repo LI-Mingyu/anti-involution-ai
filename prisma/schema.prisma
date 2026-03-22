@@ -105,7 +105,28 @@ model Comment {
   projectId String
   content   String
   nickname  String   @default("匿名用户")
+  isHidden  Boolean  @default(false) // 管理员隐藏/删除
   createdAt DateTime @default(now())
 
-  project Project @relation(fields: [projectId], references: [id])
+  project      Project       @relation(fields: [projectId], references: [id])
+  commentLikes CommentLike[]
+}
+
+// 评论点赞（每设备每条评论限一次）
+model CommentLike {
+  id          String   @id @default(cuid())
+  commentId   String
+  fingerprint String
+  createdAt   DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id])
+
+  @@unique([commentId, fingerprint])
+}
+
+// 敏感词黑名单
+model BlockedWord {
+  id        String   @id @default(cuid())
+  word      String   @unique
+  createdAt DateTime @default(now())
 }
