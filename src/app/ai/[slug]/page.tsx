@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getProjectBySlug, type ProjectDetail } from '@/lib/data'
 import AwardBadge from '@/components/AwardBadge'
+import LikeButton from '@/components/LikeButton'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -141,17 +142,9 @@ export default async function ProjectDetailPage({ params }: Props) {
           </section>
         )}
 
-        {/* ── 互动区（点赞，REQ-005 接入真实功能） ── */}
+        {/* ── 互动区（点赞） ── */}
         <section className="flex items-center gap-4">
-          <button
-            disabled
-            className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-indigo-400 hover:text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="点赞功能即将上线"
-          >
-            <span>👍</span>
-            <span>{project._count.likes}</span>
-          </button>
-          <span className="text-xs text-gray-400">点赞功能即将上线</span>
+          <LikeButton projectId={project.id} initialCount={project._count.likes} />
         </section>
 
         {/* ── 评论区占位（REQ-006 接入） ── */}
