@@ -90,11 +90,13 @@ model Like {
   id          String   @id @default(cuid())
   projectId   String
   fingerprint String   // browser fingerprint for dedup
+  ip          String   @default("unknown") // for rate limiting
   createdAt   DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id])
 
   @@unique([projectId, fingerprint])
+  @@index([projectId, ip, createdAt])
 }
 
 // 评论（匿名）
