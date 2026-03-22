@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { getActiveSeason, getHighlightProjects } from '@/lib/data'
 import ProjectCard from '@/components/ProjectCard'
