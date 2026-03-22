@@ -6,6 +6,7 @@ import type { Metadata } from 'next'
 import { getProjectBySlug, type ProjectDetail } from '@/lib/data'
 import AwardBadge from '@/components/AwardBadge'
 import LikeButton from '@/components/LikeButton'
+import CommentSection from '@/components/CommentSection'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -147,19 +148,8 @@ export default async function ProjectDetailPage({ params }: Props) {
           <LikeButton projectId={project.id} initialCount={project._count.likes} />
         </section>
 
-        {/* ── 评论区占位（REQ-006 接入） ── */}
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold text-gray-900">
-            💬 评论区
-            <span className="ml-2 text-sm font-normal text-gray-400">
-              ({project._count.comments})
-            </span>
-          </h2>
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-white py-12 text-center text-gray-400">
-            <p className="text-3xl mb-2">✍️</p>
-            <p className="text-sm font-medium">评论功能即将上线</p>
-          </div>
-        </section>
+        {/* ── 评论区 ── */}
+        <CommentSection projectId={project.id} initialCount={project._count.comments} />
 
       </div>
     </main>
