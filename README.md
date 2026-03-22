@@ -39,37 +39,25 @@
 
 ---
 
-## 技术要求
-
-> 技术选型由程序员自主决定，记录在本文件"技术栈"节后提交 PR 更新。
-
-**硬性要求：**
-- SSR 或静态生成（非纯 SPA），满足 SEO 需求
-- 响应式设计，支持移动端（最小宽度 375px）
-- 主流浏览器兼容（Chrome / Safari / Firefox 最近两个主版本）
-- 生产环境 HTTPS
-
-**性能指标：**
-- 首屏加载 ≤ 3 秒（4G 网络）
-- 点赞响应 ≤ 1 秒
-- 评论提交响应 ≤ 2 秒
-
----
-
 ## 技术栈
 
-| 分类 | 选型 | 理由 |
-|------|------|------|
-| **框架** | Next.js 14 (App Router) + TypeScript | SSR/SSG 满足 SEO 需求；App Router 支持 Server Components，首屏性能好 |
-| **样式** | Tailwind CSS | 开发速度快，响应式设计友好 |
-| **数据库** | SQLite（开发）/ PostgreSQL（生产） | SQLite 零配置方便本地开发；生产用 PostgreSQL 保证可靠性 |
-| **ORM** | Prisma | 类型安全，迁移管理规范，与 Next.js 生态契合 |
-| **部署** | Vercel（前端）+ Railway（数据库） | Vercel 与 Next.js 原生集成；Railway 托管 PostgreSQL 省心 |
-| **代码规范** | ESLint + Prettier | 统一团队代码风格 |
+| 分类 | 选型 |
+|------|------|
+| **框架** | Next.js 14 (App Router) + TypeScript |
+| **样式** | Tailwind CSS |
+| **数据库** | SQLite（本地开发）/ PostgreSQL（生产，Railway） |
+| **ORM** | Prisma |
+| **部署** | Vercel（前端）+ Railway（数据库） |
+| **代码规范** | ESLint + Prettier |
 
 ---
 
 ## 开发指南
+
+### 环境要求
+
+- Node.js 18+
+- npm
 
 ### 本地启动
 
@@ -77,9 +65,10 @@
 # 1. 安装依赖
 npm install
 
-# 2. 配置环境变量（复制示例文件）
+# 2. 配置环境变量
 cp .env.example .env
-# 编辑 .env，默认使用 SQLite 无需额外配置
+# 本地开发使用 SQLite，默认配置无需修改
+# 修改 ADMIN_PASSWORD 为你想要的后台登录密码
 
 # 3. 初始化数据库
 npx prisma db push
@@ -88,48 +77,69 @@ npx prisma db push
 npm run dev
 ```
 
-浏览器访问 http://localhost:3000
+浏览器访问 http://localhost:3000，后台访问 http://localhost:3000/admin
 
 ### 环境变量
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
 | `DATABASE_URL` | 数据库连接串 | `file:./dev.db`（SQLite） |
+| `ADMIN_PASSWORD` | 后台登录密码 | 无默认值，**必须设置** |
+| `SESSION_SECRET` | Session 签名密钥（生产环境必须设置） | 内置默认值（不安全） |
 
-### 数据库操作
+详见 `.env.example`。
+
+### 常用命令
 
 ```bash
-# 查看数据库（GUI）
-npx prisma studio
+npm run dev          # 启动开发服务器
+npm run build        # 构建生产版本
+npm run lint         # 代码检查
 
-# 应用 Schema 变更
-npx prisma db push
-
-# 生成 Prisma Client
-npx prisma generate
+npx prisma db push   # 同步数据库 Schema
+npx prisma studio    # 数据库 GUI（Prisma Studio）
+npx prisma generate  # 生成 Prisma Client
 ```
 
 ### 数据库 Schema
 
 ```
-Season     — 届次（UPCOMING / ACTIVE / ARCHIVED）
-Project    — AI 项目（关联 Season，含奖项字段）
+Season     — 届次（UPCOMING / ACTIVE / AWARDING / ARCHIVED）
+Project    — AI 项目（关联 Season，含奖项、点赞、评论）
 Submission — 提名/自荐（PENDING / APPROVED / REJECTED）
-Like       — 点赞（fingerprint 防刷，唯一约束）
+Like       — 点赞（fingerprint + IP 防刷）
 Comment    — 匿名评论
+LikeAdjustLog — 点赞数校正操作日志
 ```
+
+---
+
+## 项目状态
+
+当前 MVP 开发进度：
+
+| 模块 | 状态 |
+|------|------|
+| 项目初始化（技术选型 + 数据库 + 脚手架） | ✅ 完成 |
+| 首页榜单页面 | ✅ 完成 |
+| AI 项目详情页 | ✅ 完成 |
+| 历届获奖存档页 | ✅ 完成 |
+| 投票 / 点赞功能 | ✅ 完成 |
+| 管理后台 - 登录与访问保护 | ✅ 完成 |
+| 管理后台 - 届次管理 | ✅ 完成 |
+| 管理后台 - 项目管理 | ✅ 完成 |
+| 管理后台 - 审核中心 | ✅ 完成 |
+| 评论功能 | 🔨 开发中 |
+| 提名功能 | ⏳ 待开发 |
+| AI 自荐功能 | ⏳ 待开发 |
+| 管理后台 - 评论管理 | ⏳ 待开发 |
+| AI 主编 Agent（二期） | ⏳ 待开发 |
 
 ---
 
 ## Issue 与开发规范
 
 所有需求已拆解为 GitHub Issue，见 [Issues 列表](https://github.com/LI-Mingyu/anti-involution-ai/issues)。
-
-**建议开工顺序：**
-1. `#1` 项目初始化（技术选型 + 数据库 + 脚手架）—— **其他所有 Issue 依赖此项**
-2. `#13` 后台登录 + `#11` 届次管理 + `#10` 项目管理 —— 管理员可录入种子数据
-3. `#2` 首页 + `#3` 详情页 + `#5` 点赞 —— 核心用户体验
-4. 其余 P1 Issue 按顺序补齐
 
 **MVP 范围外（二期）：**
 - 弹幕功能
@@ -139,12 +149,12 @@ Comment    — 匿名评论
 
 ## 项目团队
 
-| 角色 | 说明 |
-|------|------|
-| 老板 | 李明宇，最终决策者 |
-| 项目经理 | 陈驰（AI），负责需求拆解、进度追踪、Issue 管理 |
-| 需求分析师 | 聆析（AI），负责用户需求收集与 PRD 整理 |
-| 程序员 | AI Agent，负责全栈开发 |
+| 角色 | 成员 | 说明 |
+|------|------|------|
+| 老板 | 李明宇 | 最终决策者 |
+| 项目经理 | 陈驰（AI Agent） | 负责需求拆解、进度追踪、Issue 管理与 PR 审核 |
+| 需求分析师 | 聆析（AI Agent） | 负责用户需求收集与 PRD 整理 |
+| 程序员 | 码哲（AI Agent，GitHub: [@ClawDevin](https://github.com/ClawDevin)） | 负责全栈开发 |
 
 需求规格说明书（PRD）：[飞书文档](https://icnw0rzptxcm.feishu.cn/docx/B5AQdk0VWossRhxeaICcEur1nLc)
 
