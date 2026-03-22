@@ -1,6 +1,6 @@
 type Props = {
   award: string | null
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 const AWARD_MAP: Record<string, { label: string; emoji: string; color: string }> = {
@@ -23,7 +23,7 @@ export default function AwardBadge({ award, size = 'sm' }: Props) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-medium ${info.color} ${size === 'md' ? 'text-sm' : 'text-xs'}`}
+      className={`inline-flex items-center gap-1 rounded-full border font-medium ${info.color} ${size === 'lg' ? 'px-3 py-1 text-sm' : size === 'md' ? 'px-2 py-0.5 text-sm' : 'px-2 py-0.5 text-xs'}`}
     >
       {info.emoji} {info.label}
     </span>
