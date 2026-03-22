@@ -72,9 +72,11 @@ model Submission {
   projectUrl         String
   description        String
   recommendReason    String?  // 推荐理由（为什么值得上榜）
+  creativeReason     String?  // 创意说明（自荐专属：为什么做它、有什么不同）
+  githubUrl          String?  // 官网/GitHub（自荐专属，可选）
   awardCategory      String?  // UNREPLACEABLE | USELESS | null（申报奖项）
   submitterEmail     String?
-  submitterNickname  String?  // 自荐人昵称
+  submitterNickname  String?  // 自荐人昵称（自荐时公开展示）
   isPublic           Boolean  @default(false) // 是否公开自荐人信息
   status             String   @default("PENDING") // PENDING | APPROVED | REJECTED
   rejectNote         String?  // 拒绝备注（内部，不对外展示）

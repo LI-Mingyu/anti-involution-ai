@@ -16,15 +16,20 @@ export async function POST(request: NextRequest) {
   }
 
   const type = body.type === 'SELF' ? 'SELF' : 'NOMINATION'
+  const isSelf = type === 'SELF'
+
   const projectName = (body.projectName ?? '').trim()
   const projectUrl = (body.projectUrl ?? '').trim()
   const description = (body.description ?? '').trim()
   const recommendReason = (body.recommendReason ?? '').trim() || null
+  const creativeReason = (body.creativeReason ?? '').trim() || null
   const awardCategory = body.awardCategory || null
   const submitterNickname = (body.submitterNickname ?? '').trim() || null
   const submitterEmail = (body.submitterEmail ?? '').trim() || null
+  const githubUrl = (body.githubUrl ?? '').trim() || null
+  const isPublic = body.isPublic === 'true'
 
-  // 必填校验
+  // ── 通用必填校验 ──
   if (!projectName || projectName.length > 100) {
     return NextResponse.json({ error: 'AI 名称不能为空（最长 100 字）' }, { status: 400 })
   }
@@ -38,14 +43,49 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'URL 格式不合法，请填写完整的 http/https 链接' }, { status: 400 })
   }
-  if (!description || description.length < 50) {
-    return NextResponse.json({ error: '详细介绍至少需要 50 个字' }, { status: 400 })
-  }
-  if (description.length > 500) {
-    return NextResponse.json({ error: '详细介绍不能超过 500 个字' }, { status: 400 })
-  }
   if (!awardCategory || !['UNREPLACEABLE', 'USELESS'].includes(awardCategory)) {
     return NextResponse.json({ error: '请选择申报奖项' }, { status: 400 })
+  }
+
+  if (isSelf) {
+    // ── 自荐专属校验 ──
+    if (!submitterNickname) {
+      return NextResponse.json({ error: '自荐需要填写作者昵称' }, { status: 400 })
+    }
+    if (!submitterEmail) {
+      return NextResponse.json({ error: '自荐需要填写联系邮箱' }, { status: 400 })
+    }
+    // 详细介绍：100~1000 字
+    if (!description || description.length < 100) {
+      return NextResponse.json({ error: '详细介绍至少需要 100 个字' }, { status: 400 })
+    }
+    if (description.length > 1000) {
+      return NextResponse.json({ error: '详细介绍不能超过 1000 个字' }, { status: 400 })
+    }
+    // 创意说明：50~300 字
+    if (!creativeReason || creativeReason.length < 50) {
+      return NextResponse.json({ error: '创意说明至少需要 50 个字' }, { status: 400 })
+    }
+    if (creativeReason.length > 300) {
+      return NextResponse.json({ error: '创意说明不能超过 300 个字' }, { status: 400 })
+    }
+    // githubUrl 格式（若填写）
+    if (githubUrl) {
+      try {
+        const u = new URL(githubUrl)
+        if (!['http:', 'https:'].includes(u.protocol)) throw new Error()
+      } catch {
+        return NextResponse.json({ error: '官网/GitHub 链接格式不合法' }, { status: 400 })
+      }
+    }
+  } else {
+    // ── 提名校验 ──
+    if (!description || description.length < 50) {
+      return NextResponse.json({ error: '详细介绍至少需要 50 个字' }, { status: 400 })
+    }
+    if (description.length > 500) {
+      return NextResponse.json({ error: '详细介绍不能超过 500 个字' }, { status: 400 })
+    }
   }
 
   // 获取当前活跃届次
@@ -57,13 +97,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '当前暂无开放中的届次，请稍后再试' }, { status: 400 })
   }
 
-  // 重复 URL 检测（同届次已有相同 projectUrl 的 PENDING/APPROVED 提交）
+  // 重复 URL 检测
   const existing = await prisma.submission.findFirst({
-    where: {
-      projectUrl,
-      seasonId: season.id,
-      status: { in: ['PENDING', 'APPROVED'] },
-    },
+    where: { projectUrl, seasonId: season.id, status: { in: ['PENDING', 'APPROVED'] } },
   })
   if (existing) {
     return NextResponse.json({ error: '该项目已存在或正在审核中，感谢你的热心！' }, { status: 409 })
@@ -76,9 +112,12 @@ export async function POST(request: NextRequest) {
       projectUrl,
       description,
       recommendReason,
+      creativeReason,
       awardCategory,
       submitterNickname,
       submitterEmail,
+      githubUrl,
+      isPublic,
       seasonId: season.id,
     },
   })
