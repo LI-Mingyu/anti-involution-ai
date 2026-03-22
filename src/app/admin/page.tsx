@@ -5,6 +5,8 @@ const NAV_ITEMS = [
   { href: '/admin/seasons', emoji: '📅', title: '届次管理', desc: '创建届次、切换状态、设置 Slogan' },
   { href: '/admin/projects', emoji: '🗂️', title: '项目管理', desc: '新增、编辑、下架项目，校正点赞数' },
   { href: '/admin/review', emoji: '📋', title: '审核中心', desc: '处理提名与自荐，管理候选列表' },
+  { href: '/admin/comments', emoji: '💬', title: '评论管理', desc: '查看、隐藏违规评论，按项目分组' },
+  { href: '/admin/blocked-words', emoji: '🚫', title: '敏感词管理', desc: '动态配置关键词黑名单，无需改代码' },
 ]
 
 export default function AdminPage() {
