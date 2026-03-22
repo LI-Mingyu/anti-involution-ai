@@ -52,7 +52,7 @@ export default async function AdminSeasonsPage() {
                       <h2 className="font-bold text-gray-900">{s.name}</h2>
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${info.color}`}>{info.label}</span>
                     </div>
-                    {s.slogan && <p className="text-sm text-gray-500 italic">"{s.slogan}"</p>}
+                    {s.slogan && <p className="text-sm text-gray-500 italic">&quot;{s.slogan}&quot;</p>}
                     <p className="text-xs text-gray-400">
                       {s._count.projects} 个项目 · {s._count.submissions} 条提名/自荐
                       {s.startAt && ` · 开始：${new Date(s.startAt).toLocaleDateString('zh-CN')}`}
