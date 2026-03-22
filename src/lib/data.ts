@@ -77,6 +77,44 @@ export type ProjectDetail = ProjectWithCounts & {
   submissions: SubmissionPublic[]
 }
 
+/** 获取所有届次，按创建时间倒序（用于存档列表页） */
+export async function getAllSeasons(): Promise<
+  Array<{
+    id: string
+    name: string
+    status: string
+    startAt: Date | null
+    endAt: Date | null
+    createdAt: Date
+    _count: { projects: number }
+  }>
+> {
+  const seasons = await prisma.season.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      _count: { select: { projects: true } },
+    },
+  })
+  return seasons
+}
+
+/** 获取某届次的详情及所有获奖项目 */
+export async function getSeasonById(seasonId: string): Promise<SeasonWithProjects | null> {
+  const season = await prisma.season.findUnique({
+    where: { id: seasonId },
+    include: {
+      projects: {
+        where: { isActive: true, award: { not: null } },
+        include: {
+          _count: { select: { likes: true, comments: true } },
+        },
+        orderBy: { createdAt: 'asc' },
+      },
+    },
+  })
+  return season as SeasonWithProjects | null
+}
+
 /** 通过 slug 获取单个项目详情（含届次信息 & 公开自荐记录） */
 export async function getProjectBySlug(slug: string): Promise<ProjectDetail | null> {
   const project = await prisma.project.findUnique({
