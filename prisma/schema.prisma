@@ -50,13 +50,16 @@ model Project {
 // 提名 / 自荐
 model Submission {
   id                 String   @id @default(cuid())
+  type               String   @default("NOMINATION") // NOMINATION | SELF
   projectName        String
   projectUrl         String
   description        String
+  awardCategory      String?  // UNREPLACEABLE | USELESS | null（申报奖项）
   submitterEmail     String?
   submitterNickname  String?  // 自荐人昵称
   isPublic           Boolean  @default(false) // 是否公开自荐人信息
   status             String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  rejectNote         String?  // 拒绝备注（内部，不对外展示）
   seasonId           String
   projectId          String?  // 审批通过后关联到的项目（可选）
   createdAt          DateTime @default(now())
