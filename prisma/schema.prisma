@@ -33,18 +33,34 @@ model Project {
   url             String   // 体验链接
   githubUrl       String?  // GitHub / 官网链接（可选）
   imageUrl        String?
-  award           String?  // UNREPLACEABLE | USELESS | null
+  award           String?  // UNREPLACEABLE | USELESS | null（获奖状态）
+  awardStatus     String   @default("CANDIDATE") // CANDIDATE | WINNER | LOSER
   judgeComment    String?  // 评委点评内容
   judgeNickname   String?  // 评委昵称
-  isActive        Boolean  @default(true) // false 表示已下架
+  isActive        Boolean  @default(true)  // false 表示已下架
+  embedEnabled    Boolean  @default(false) // 是否支持内嵌体验（二期功能占位）
+  sortOrder       Int      @default(0)     // 展示排序，越小越靠前
   seasonId        String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  season      Season       @relation(fields: [seasonId], references: [id])
-  likes       Like[]
-  comments    Comment[]
-  submissions Submission[] // 关联的自荐/提名记录
+  season          Season           @relation(fields: [seasonId], references: [id])
+  likes           Like[]
+  comments        Comment[]
+  submissions     Submission[]     // 关联的自荐/提名记录
+  likeAdjustLogs  LikeAdjustLog[]  // 点赞数校正日志
+}
+
+// 点赞数校正日志
+model LikeAdjustLog {
+  id         String   @id @default(cuid())
+  projectId  String
+  oldCount   Int
+  newCount   Int
+  reason     String   // 必填原因
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
 }
 
 // 提名 / 自荐

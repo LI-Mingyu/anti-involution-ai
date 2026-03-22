@@ -10,9 +10,12 @@ export type ProjectWithCounts = {
   githubUrl: string | null
   imageUrl: string | null
   award: string | null
+  awardStatus: string
   judgeComment: string | null
   judgeNickname: string | null
   isActive: boolean
+  embedEnabled: boolean
+  sortOrder: number
   seasonId: string
   createdAt: Date
   updatedAt: Date
@@ -43,7 +46,7 @@ export async function getActiveSeason(): Promise<SeasonWithProjects | null> {
         include: {
           _count: { select: { likes: true, comments: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
       },
     },
   })
