@@ -28,6 +28,7 @@ export type ProjectWithCounts = {
 export type SeasonWithProjects = {
   id: string
   name: string
+  slogan: string | null
   status: string
   startAt: Date | null
   endAt: Date | null
@@ -35,10 +36,10 @@ export type SeasonWithProjects = {
   projects: ProjectWithCounts[]
 }
 
-/** 获取当前活跃届次（ACTIVE），若无则返回最新 UPCOMING 届 */
+/** 获取当前活跃届次，优先级：AWARDING > ACTIVE > UPCOMING > ARCHIVED */
 export async function getActiveSeason(): Promise<SeasonWithProjects | null> {
   const season = await prisma.season.findFirst({
-    where: { status: { in: ['ACTIVE', 'UPCOMING', 'ARCHIVED'] } },
+    where: { status: { in: ['AWARDING', 'ACTIVE', 'UPCOMING', 'ARCHIVED'] } },
     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     include: {
       projects: {

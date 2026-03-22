@@ -14,7 +14,8 @@ datasource db {
 model Season {
   id        String    @id @default(cuid())
   name      String    // e.g. "第一届"
-  status    String    @default("UPCOMING") // UPCOMING | ACTIVE | ARCHIVED
+  slogan    String?   // 该届专属 Banner 文案
+  status    String    @default("UPCOMING") // UPCOMING | ACTIVE | AWARDING | ARCHIVED
   startAt   DateTime?
   endAt     DateTime?
   createdAt DateTime  @default(now())

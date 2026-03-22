@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { logoutAction } from './actions'
 
 const NAV_ITEMS = [
+  { href: '/admin/seasons', emoji: '📅', title: '届次管理', desc: '创建届次、切换状态、设置 Slogan' },
   { href: '/admin/projects', emoji: '🗂️', title: '项目管理', desc: '新增、编辑、下架项目，校正点赞数' },
   { href: '/admin/review', emoji: '📋', title: '审核中心', desc: '处理提名与自荐，管理候选列表' },
 ]
