@@ -12,12 +12,13 @@ export const metadata: Metadata = {
     '发现那些增强人、而非替代人的 AI 项目。最不可替代奖 · 最没用AI奖',
 }
 
-// 届次状态标签
+// 届次状态标签（含 AWARDING 颁奖揭晓）
 function SeasonStatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string }> = {
-    ACTIVE: { label: '候选中', color: 'bg-green-100 text-green-700 border-green-300' },
+    ACTIVE:   { label: '候选中',   color: 'bg-green-100 text-green-700 border-green-300' },
+    AWARDING: { label: '颁奖揭晓', color: 'bg-amber-100 text-amber-700 border-amber-300' },
     UPCOMING: { label: '即将开始', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-    ARCHIVED: { label: '已结束', color: 'bg-gray-100 text-gray-600 border-gray-300' },
+    ARCHIVED: { label: '已结束',   color: 'bg-gray-100 text-gray-600 border-gray-300' },
   }
   const info = map[status] ?? map.ARCHIVED
   return (
@@ -27,12 +28,13 @@ function SeasonStatusBadge({ status }: { status: string }) {
   )
 }
 
-// CTA 按钮
+// CTA 按钮（含 AWARDING 看结果）
 function CtaButton({ status }: { status: string }) {
   const map: Record<string, { label: string; href: string }> = {
-    ACTIVE: { label: '去投票', href: '#projects' },
+    ACTIVE:   { label: '去投票',   href: '#projects' },
+    AWARDING: { label: '看结果',   href: '#highlights' },
     UPCOMING: { label: '即将开始', href: '#' },
-    ARCHIVED: { label: '看结果', href: '#highlights' },
+    ARCHIVED: { label: '看结果',   href: '#highlights' },
   }
   const info = map[status] ?? { label: '了解更多', href: '#' }
   return (
@@ -115,13 +117,21 @@ export default async function HomePage() {
           <h1 className="text-4xl font-extrabold leading-tight sm:text-5xl md:text-6xl">
             反内卷 AI 榜
           </h1>
-          <p className="mt-3 text-lg text-indigo-200 sm:text-xl">
-            主流 AI 比谁更能替代人类。我们反其道而行。
-          </p>
-          <p className="mt-2 text-base text-indigo-300">
-            发现那些<strong className="text-white">增强人、而非替代人</strong>的 AI ——
-            或者完全无用但充满创意的 AI
-          </p>
+          {season?.slogan ? (
+            <p className="mt-3 text-lg text-indigo-200 sm:text-xl italic">
+              {season.slogan}
+            </p>
+          ) : (
+            <>
+              <p className="mt-3 text-lg text-indigo-200 sm:text-xl">
+                主流 AI 比谁更能替代人类。我们反其道而行。
+              </p>
+              <p className="mt-2 text-base text-indigo-300">
+                发现那些<strong className="text-white">增强人、而非替代人</strong>的 AI ——
+                或者完全无用但充满创意的 AI
+              </p>
+            </>
+          )}
           {season && (
             <div className="mt-8">
               <CtaButton status={season.status} />
