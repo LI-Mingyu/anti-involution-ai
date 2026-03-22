@@ -27,6 +27,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Init database for build
+        run: npx prisma db push
+        env:
+          DATABASE_URL: file:./dev.db
+
       - name: Build
         run: npm run build
         env:
