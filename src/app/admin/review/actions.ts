@@ -3,6 +3,23 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/session'
+import type { PrismaClient } from '@prisma/client'
+import type { ITXClientDenyList } from '@prisma/client/runtime/library'
+
+type TxClient = Omit<PrismaClient, ITXClientDenyList>
+
+/**
+ * 生成唯一 slug：先用纯净名称，冲突时追加 4 位随机后缀
+ * @param name 项目名称
+ * @param db  Prisma client 或 transaction client
+ */
+async function generateUniqueSlug(name: string, db: TxClient): Promise<string> {
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project'
+  const existing = await db.project.findUnique({ where: { slug: base } })
+  if (!existing) return base
+  // 冲突时追加 4 位随机字母数字后缀，极低概率二次冲突由数据库唯一约束兜底
+  return `${base}-${Math.random().toString(36).slice(2, 6)}`
+}
 
 /** 通过一条提名/自荐：在单事务内创建 Project 并更新 Submission 状态 */
 export async function approveSubmission(submissionId: string): Promise<{ error?: string }> {
@@ -13,8 +30,8 @@ export async function approveSubmission(submissionId: string): Promise<{ error?:
     if (!sub) return { error: '提交记录不存在' }
     if (sub.status === 'APPROVED') return { error: '该记录已通过审核' }
 
-    // 生成唯一 slug（项目名 + 时间戳）
-    const slug = `${sub.projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now()}`
+    // 生成唯一 slug（先尝试纯净名称，冲突时追加短随机后缀）
+    const slug = await generateUniqueSlug(sub.projectName, prisma)
 
     // 原子操作：使用 interactive transaction，project.create 与 submission.update 同时成功或同时回滚
     await prisma.$transaction(async (tx) => {
@@ -98,7 +115,7 @@ export async function batchApprove(ids: string[]): Promise<{ error?: string }> {
         if (!sub) throw new Error(`提交记录不存在: ${id}`)
         if (sub.status === 'APPROVED') continue // 已通过则跳过
 
-        const slug = `${sub.projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+        const slug = await generateUniqueSlug(sub.projectName, tx)
 
         const project = await tx.project.create({
           data: {
