@@ -10,7 +10,8 @@ export async function loginAction(
   formData: FormData,
 ): Promise<{ error?: string }> {
   const password = formData.get('password') as string
-  const adminPassword = process.env.ADMIN_PASSWORD ?? 'admin123'
+  const adminPassword = process.env.ADMIN_PASSWORD
+  if (!adminPassword) throw new Error('ADMIN_PASSWORD 环境变量未设置，请在部署环境中配置')
 
   if (!password || password !== adminPassword) {
     return { error: '密码错误，请重试' }

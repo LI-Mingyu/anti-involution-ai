@@ -10,7 +10,8 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7 // 7 天
 
 /** 获取签名密钥（Node.js crypto 的 CryptoKey） */
 async function getKey(): Promise<CryptoKey> {
-  const secret = process.env.SESSION_SECRET ?? 'default-dev-secret-change-in-production'
+  const secret = process.env.SESSION_SECRET
+  if (!secret) throw new Error('SESSION_SECRET 环境变量未设置，请在部署环境中配置')
   const enc = new TextEncoder()
   return crypto.subtle.importKey(
     'raw',
