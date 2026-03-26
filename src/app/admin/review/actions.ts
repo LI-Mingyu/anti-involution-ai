@@ -2,9 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/session'
 
 /** 通过一条提名/自荐：创建 Project 记录，更新 Submission 状态 */
 export async function approveSubmission(submissionId: string): Promise<{ error?: string }> {
+  await requireAdmin()
   try {
     const sub = await prisma.submission.findUnique({ where: { id: submissionId }, include: { season: true } })
     if (!sub) return { error: '提交记录不存在' }
@@ -39,6 +41,7 @@ export async function approveSubmission(submissionId: string): Promise<{ error?:
 
 /** 拒绝一条提名/自荐，记录内部备注 */
 export async function rejectSubmission(submissionId: string, note: string): Promise<{ error?: string }> {
+  await requireAdmin()
   try {
     await prisma.submission.update({
       where: { id: submissionId },
@@ -53,6 +56,7 @@ export async function rejectSubmission(submissionId: string, note: string): Prom
 
 /** 撤销审核：将项目下架，Submission 改回 PENDING */
 export async function revokeSubmission(submissionId: string): Promise<{ error?: string }> {
+  await requireAdmin()
   try {
     const sub = await prisma.submission.findUnique({ where: { id: submissionId } })
     if (!sub) return { error: '提交记录不存在' }
@@ -81,6 +85,7 @@ export async function revokeSubmission(submissionId: string): Promise<{ error?: 
 
 /** 批量通过 */
 export async function batchApprove(ids: string[]): Promise<{ error?: string }> {
+  await requireAdmin()
   const errors: string[] = []
   for (const id of ids) {
     const result = await approveSubmission(id)
@@ -91,6 +96,7 @@ export async function batchApprove(ids: string[]): Promise<{ error?: string }> {
 
 /** 批量拒绝 */
 export async function batchReject(ids: string[], note: string): Promise<{ error?: string }> {
+  await requireAdmin()
   try {
     await prisma.submission.updateMany({
       where: { id: { in: ids }, status: 'PENDING' },

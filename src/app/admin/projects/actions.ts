@@ -3,12 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/session'
 
 /** 新增或更新项目 */
 export async function upsertProject(
   _prevState: { error?: string },
   formData: FormData,
 ): Promise<{ error?: string }> {
+  await requireAdmin()
   const id = formData.get('id') as string | null
   const slug = (formData.get('slug') as string).trim()
   const name = (formData.get('name') as string).trim()
@@ -57,6 +59,7 @@ export async function upsertProject(
 
 /** 下架/上架项目 */
 export async function toggleProjectActive(id: string, isActive: boolean): Promise<void> {
+  await requireAdmin()
   await prisma.project.update({ where: { id }, data: { isActive } })
   revalidatePath('/admin/projects')
   revalidatePath('/')
@@ -64,6 +67,7 @@ export async function toggleProjectActive(id: string, isActive: boolean): Promis
 
 /** 删除项目（级联删除 likes/comments） */
 export async function deleteProject(id: string): Promise<{ error?: string }> {
+  await requireAdmin()
   try {
     await prisma.like.deleteMany({ where: { projectId: id } })
     await prisma.comment.deleteMany({ where: { projectId: id } })
@@ -83,6 +87,7 @@ export async function adjustLikes(
   _prevState: { error?: string },
   formData: FormData,
 ): Promise<{ error?: string }> {
+  await requireAdmin()
   const projectId = formData.get('projectId') as string
   const newCount = parseInt(formData.get('newCount') as string)
   const reason = (formData.get('reason') as string).trim()

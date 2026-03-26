@@ -3,6 +3,8 @@
  * 生产环境请设置 SESSION_SECRET 环境变量（至少 32 位随机字符串）。
  */
 
+import { cookies } from 'next/headers'
+
 const SESSION_COOKIE = 'admin_session'
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7 // 7 天
 
@@ -47,6 +49,15 @@ export async function verifySessionToken(token: string): Promise<boolean> {
     return Date.now() - ts < SESSION_TTL_SECONDS * 1000
   } catch {
     return false
+  }
+}
+
+/** 验证当前请求是否已登录管理员，未登录则抛出 Unauthorized 错误 */
+export async function requireAdmin(): Promise<void> {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(SESSION_COOKIE)?.value
+  if (!token || !(await verifySessionToken(token))) {
+    throw new Error('Unauthorized')
   }
 }
 
