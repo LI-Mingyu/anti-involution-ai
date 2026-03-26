@@ -2,12 +2,14 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/session'
 
 /** 添加敏感词 */
 export async function addBlockedWord(
   _prev: { error?: string },
   formData: FormData,
 ): Promise<{ error?: string }> {
+  await requireAdmin()
   const word = (formData.get('word') as string).trim()
   if (!word) return { error: '关键词不能为空' }
   if (word.length > 50) return { error: '关键词不能超过 50 个字符' }
@@ -23,6 +25,7 @@ export async function addBlockedWord(
 
 /** 删除敏感词 */
 export async function deleteBlockedWord(id: string): Promise<{ error?: string }> {
+  await requireAdmin()
   try {
     await prisma.blockedWord.delete({ where: { id } })
     revalidatePath('/admin/blocked-words')
