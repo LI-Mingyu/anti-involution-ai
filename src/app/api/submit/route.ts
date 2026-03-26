@@ -47,6 +47,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '请选择申报奖项' }, { status: 400 })
   }
 
+  // 一句话介绍：通用最小长度校验
+  if (!description || description.length < 5) {
+    return NextResponse.json({ error: '一句话介绍至少需要 5 个字' }, { status: 400 })
+  }
+
   if (isSelf) {
     // ── 自荐专属校验 ──
     if (!submitterNickname) {
@@ -55,11 +60,11 @@ export async function POST(request: NextRequest) {
     if (!submitterEmail) {
       return NextResponse.json({ error: '自荐需要填写联系邮箱' }, { status: 400 })
     }
-    // 详细介绍：100~1000 字
-    if (!description || description.length < 100) {
+    // 详细介绍（recommendReason）：100~1000 字
+    if (!recommendReason || recommendReason.length < 100) {
       return NextResponse.json({ error: '详细介绍至少需要 100 个字' }, { status: 400 })
     }
-    if (description.length > 1000) {
+    if (recommendReason.length > 1000) {
       return NextResponse.json({ error: '详细介绍不能超过 1000 个字' }, { status: 400 })
     }
     // 创意说明：50~300 字
@@ -80,10 +85,11 @@ export async function POST(request: NextRequest) {
     }
   } else {
     // ── 提名校验 ──
-    if (!description || description.length < 50) {
+    // 推荐理由（recommendReason）：50~500 字
+    if (!recommendReason || recommendReason.length < 50) {
       return NextResponse.json({ error: '详细介绍至少需要 50 个字' }, { status: 400 })
     }
-    if (description.length > 500) {
+    if (recommendReason.length > 500) {
       return NextResponse.json({ error: '详细介绍不能超过 500 个字' }, { status: 400 })
     }
   }
