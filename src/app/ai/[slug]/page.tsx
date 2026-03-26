@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import DOMPurify from 'isomorphic-dompurify'
 import { getProjectBySlug, type ProjectDetail } from '@/lib/data'
 import AwardBadge from '@/components/AwardBadge'
 import LikeButton from '@/components/LikeButton'
@@ -33,10 +34,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /** 把纯文本的换行转成简单的段落 HTML（不引入第三方 Markdown 库）*/
 function renderMarkdown(text: string): string {
-  return text
+  const raw = text
     .split(/\n\n+/)
     .map((para) => `<p>${para.replace(/\n/g, '<br />')}</p>`)
     .join('')
+  return DOMPurify.sanitize(raw)
 }
 
 export default async function ProjectDetailPage({ params }: Props) {
