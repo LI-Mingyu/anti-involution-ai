@@ -4,6 +4,41 @@ import { checkContent } from '@/lib/filter'
 
 const PAGE_SIZE = 20
 
+// 速率限制配置（可通过环境变量覆盖）
+const RATE_LIMIT_PER_MINUTE = parseInt(process.env.COMMENT_RATE_LIMIT_PER_MINUTE ?? '3', 10)
+const RATE_LIMIT_PER_HOUR = parseInt(process.env.COMMENT_RATE_LIMIT_PER_HOUR ?? '10', 10)
+
+/** 获取客户端 IP */
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    'unknown'
+  )
+}
+
+/** 检查评论速率限制，返回错误信息或 null（通过） */
+async function checkCommentRateLimit(ip: string): Promise<string | null> {
+  if (ip === 'unknown') return null // 无法识别 IP 时跳过限制
+
+  const now = Date.now()
+  const oneMinuteAgo = new Date(now - 60 * 1000)
+  const oneHourAgo = new Date(now - 60 * 60 * 1000)
+
+  const [countPerMinute, countPerHour] = await Promise.all([
+    prisma.comment.count({ where: { ip, createdAt: { gte: oneMinuteAgo } } }),
+    prisma.comment.count({ where: { ip, createdAt: { gte: oneHourAgo } } }),
+  ])
+
+  if (countPerMinute >= RATE_LIMIT_PER_MINUTE) {
+    return `评论过于频繁，每分钟最多 ${RATE_LIMIT_PER_MINUTE} 条，请稍后再试`
+  }
+  if (countPerHour >= RATE_LIMIT_PER_HOUR) {
+    return `评论过于频繁，每小时最多 ${RATE_LIMIT_PER_HOUR} 条，请稍后再试`
+  }
+  return null
+}
+
 /** GET /api/comments/[projectId]?page=1 */
 export async function GET(
   request: NextRequest,
@@ -70,6 +105,13 @@ export async function POST(
     )
   }
 
+  // 速率限制
+  const ip = getClientIp(request)
+  const rateLimitError = await checkCommentRateLimit(ip)
+  if (rateLimitError) {
+    return NextResponse.json({ error: rateLimitError }, { status: 429 })
+  }
+
   // 检查项目是否存在且上架
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -80,7 +122,7 @@ export async function POST(
   }
 
   const comment = await prisma.comment.create({
-    data: { projectId, nickname, content },
+    data: { projectId, nickname, content, ip },
     include: { _count: { select: { commentLikes: true } } },
   })
 
