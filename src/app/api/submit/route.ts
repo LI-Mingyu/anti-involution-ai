@@ -1,6 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// 速率限制配置（可通过环境变量覆盖）
+const SUBMIT_RATE_LIMIT_PER_HOUR = parseInt(process.env.SUBMIT_RATE_LIMIT_PER_HOUR ?? '5', 10)
+
+/** 获取客户端 IP */
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    'unknown'
+  )
+}
+
+/** 检查提名/自荐速率限制，返回错误信息或 null（通过） */
+async function checkSubmitRateLimit(ip: string): Promise<string | null> {
+  if (ip === 'unknown') return null // 无法识别 IP 时跳过限制
+
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+  const countPerHour = await prisma.submission.count({
+    where: { ip, createdAt: { gte: oneHourAgo } },
+  })
+
+  if (countPerHour >= SUBMIT_RATE_LIMIT_PER_HOUR) {
+    return `提交过于频繁，每小时最多 ${SUBMIT_RATE_LIMIT_PER_HOUR} 次，请稍后再试`
+  }
+  return null
+}
+
 /** POST /api/submit — 提名或自荐 */
 export async function POST(request: NextRequest) {
   let body: Record<string, string>
@@ -103,6 +130,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '当前暂无开放中的届次，请稍后再试' }, { status: 400 })
   }
 
+  // 速率限制
+  const ip = getClientIp(request)
+  const rateLimitError = await checkSubmitRateLimit(ip)
+  if (rateLimitError) {
+    return NextResponse.json({ error: rateLimitError }, { status: 429 })
+  }
+
   // 重复 URL 检测
   const existing = await prisma.submission.findFirst({
     where: { projectUrl, seasonId: season.id, status: { in: ['PENDING', 'APPROVED'] } },
@@ -125,6 +159,7 @@ export async function POST(request: NextRequest) {
       githubUrl,
       isPublic,
       seasonId: season.id,
+      ip,
     },
   })
 

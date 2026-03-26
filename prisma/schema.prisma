@@ -82,10 +82,13 @@ model Submission {
   rejectNote         String?  // 拒绝备注（内部，不对外展示）
   seasonId           String
   projectId          String?  // 审批通过后关联到的项目（可选）
+  ip                 String   @default("unknown") // 用于速率限制
   createdAt          DateTime @default(now())
 
   season  Season   @relation(fields: [seasonId], references: [id])
   project Project? @relation(fields: [projectId], references: [id])
+
+  @@index([ip, createdAt])
 }
 
 // 点赞（无需注册，fingerprint 防刷）
