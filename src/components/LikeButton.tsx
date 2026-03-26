@@ -1,21 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { getOrCreateFingerprint } from '@/lib/fingerprint'
 
 type Props = {
   projectId: string
   initialCount: number
-}
-
-// 生成或获取浏览器 fingerprint（存 localStorage）
-function getFingerprint(): string {
-  const key = 'anti_involution_fp'
-  let fp = localStorage.getItem(key)
-  if (!fp) {
-    fp = Math.random().toString(36).slice(2) + Date.now().toString(36)
-    localStorage.setItem(key, fp)
-  }
-  return fp
 }
 
 // localStorage key for liked projects
@@ -32,7 +22,7 @@ export default function LikeButton({ projectId, initialCount }: Props) {
 
   // 初始化：从 localStorage 读取点赞状态，并同步服务端
   useEffect(() => {
-    const fp = getFingerprint()
+    const fp = getOrCreateFingerprint()
     const localLiked = localStorage.getItem(likedKey(projectId)) === '1'
     setLiked(localLiked)
 
@@ -56,7 +46,7 @@ export default function LikeButton({ projectId, initialCount }: Props) {
     setLoading(true)
     setError(null)
 
-    const fp = getFingerprint()
+    const fp = getOrCreateFingerprint()
     const action = liked ? 'unlike' : 'like'
     const optimisticLiked = !liked
     const optimisticCount = liked ? count - 1 : count + 1
