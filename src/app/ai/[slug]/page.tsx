@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: project.name,
       description: project.description,
-      url: `https://anti-involution.ai/ai/${project.slug}`,
+      url: `/ai/${project.slug}`,
       type: 'article',
     },
   }
