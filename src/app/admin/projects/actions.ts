@@ -82,7 +82,7 @@ export async function deleteProject(id: string): Promise<{ error?: string }> {
   }
 }
 
-/** 校正点赞数 */
+/** 校正点赞数（保留真实用户点赞记录，仅调整虚拟补丁记录） */
 export async function adjustLikes(
   _prevState: { error?: string },
   formData: FormData,
@@ -98,13 +98,21 @@ export async function adjustLikes(
   try {
     const oldCount = await prisma.like.count({ where: { projectId } })
 
-    // 清除所有旧 likes，按新值插入虚拟记录
-    await prisma.like.deleteMany({ where: { projectId } })
-    if (newCount > 0) {
+    // 删除上一批次写入的虚拟补丁记录（fingerprint 以 __admin_adj_ 开头）
+    await prisma.like.deleteMany({
+      where: { projectId, fingerprint: { startsWith: '__admin_adj_' } },
+    })
+
+    // 计算真实用户点赞数（不含虚拟补丁）
+    const realCount = await prisma.like.count({ where: { projectId } })
+
+    // 若目标值 > 真实点赞数，补充虚拟记录凑到目标值；否则仅保留真实记录（展示真实数）
+    const padCount = newCount > realCount ? newCount - realCount : 0
+    if (padCount > 0) {
       await prisma.like.createMany({
-        data: Array.from({ length: newCount }, (_, i) => ({
+        data: Array.from({ length: padCount }, (_, i) => ({
           projectId,
-          fingerprint: `__admin_adj_${i}`,
+          fingerprint: `__admin_adj_${Date.now()}_${i}`,
         })),
       })
     }
