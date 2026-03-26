@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { getActiveSeason, getHighlightProjects } from '@/lib/data'
 import ProjectCard from '@/components/ProjectCard'
+import ProjectList from '@/components/ProjectList'
 import type { ProjectWithCounts } from '@/lib/data'
 import type { Metadata } from 'next'
 
@@ -47,56 +48,7 @@ function CtaButton({ status }: { status: string }) {
   )
 }
 
-// 筛选 bar（客户端交互，暂用静态展示）
-function FilterBar({
-  activeAward,
-  activeSort,
-}: {
-  activeAward: string
-  activeSort: string
-}) {
-  return (
-    <div className="flex flex-wrap gap-3 items-center">
-      <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
-        {[
-          { value: 'all', label: '全部' },
-          { value: 'UNREPLACEABLE', label: '🏆 最不可替代' },
-          { value: 'USELESS', label: '🏅 最没用AI' },
-        ].map((opt) => (
-          <button
-            key={opt.value}
-            data-award={opt.value}
-            className={`px-4 py-2 transition ${
-              activeAward === opt.value
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-      <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
-        {[
-          { value: 'likes', label: '最多投票' },
-          { value: 'newest', label: '最新加入' },
-        ].map((opt) => (
-          <button
-            key={opt.value}
-            data-sort={opt.value}
-            className={`px-4 py-2 transition ${
-              activeSort === opt.value
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
+
 
 export default async function HomePage() {
   const season = await getActiveSeason()
@@ -178,23 +130,7 @@ export default async function HomePage() {
             </h2>
           </div>
 
-          <FilterBar activeAward="all" activeSort="likes" />
-
-          <div className="mt-6">
-            {allProjects.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-white py-20 text-center text-gray-400">
-                <p className="text-4xl mb-3">🤖</p>
-                <p className="text-lg font-medium">候选项目征集中，敬请期待</p>
-                <p className="mt-1 text-sm">你也可以提名一个 AI 项目</p>
-              </div>
-            ) : (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {allProjects.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
-                ))}
-              </div>
-            )}
-          </div>
+          <ProjectList projects={allProjects} />
         </section>
 
         {/* ── 4. 互动入口区 ── */}
