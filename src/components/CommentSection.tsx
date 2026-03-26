@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { getOrCreateFingerprint } from '@/lib/fingerprint'
 
 type Comment = {
   id: string
@@ -15,17 +16,7 @@ type Props = {
   initialCount: number
 }
 
-/** 生成/获取浏览器 fingerprint（简单实现，存 localStorage） */
-function getFingerprint(): string {
-  if (typeof window === 'undefined') return 'ssr'
-  const key = 'ai_fp'
-  let fp = localStorage.getItem(key)
-  if (!fp) {
-    fp = `${Date.now()}-${Math.random().toString(36).slice(2)}`
-    localStorage.setItem(key, fp)
-  }
-  return fp
-}
+
 
 export default function CommentSection({ projectId, initialCount }: Props) {
   const [comments, setComments] = useState<Comment[]>([])
@@ -104,7 +95,7 @@ export default function CommentSection({ projectId, initialCount }: Props) {
   }
 
   async function handleLike(commentId: string) {
-    const fp = getFingerprint()
+    const fp = getOrCreateFingerprint()
     try {
       const res = await fetch(`/api/comment-like/${commentId}`, {
         method: 'POST',
