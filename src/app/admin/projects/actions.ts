@@ -65,15 +65,17 @@ export async function toggleProjectActive(id: string, isActive: boolean): Promis
   revalidatePath('/')
 }
 
-/** 删除项目（级联删除 likes/comments） */
+/** 删除项目（级联删除 likes/comments，原子事务保护） */
 export async function deleteProject(id: string): Promise<{ error?: string }> {
   await requireAdmin()
   try {
-    await prisma.like.deleteMany({ where: { projectId: id } })
-    await prisma.comment.deleteMany({ where: { projectId: id } })
-    await prisma.likeAdjustLog.deleteMany({ where: { projectId: id } })
-    await prisma.submission.updateMany({ where: { projectId: id }, data: { projectId: null, status: 'PENDING' } })
-    await prisma.project.delete({ where: { id } })
+    await prisma.$transaction(async (tx) => {
+      await tx.like.deleteMany({ where: { projectId: id } })
+      await tx.comment.deleteMany({ where: { projectId: id } })
+      await tx.likeAdjustLog.deleteMany({ where: { projectId: id } })
+      await tx.submission.updateMany({ where: { projectId: id }, data: { projectId: null, status: 'PENDING' } })
+      await tx.project.delete({ where: { id } })
+    })
     revalidatePath('/admin/projects')
     revalidatePath('/')
     return {}
