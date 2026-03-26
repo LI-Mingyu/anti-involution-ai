@@ -36,11 +36,11 @@ export type SeasonWithProjects = {
   projects: ProjectWithCounts[]
 }
 
-/** 获取当前活跃届次，优先级：AWARDING > ACTIVE > UPCOMING > ARCHIVED */
-export async function getActiveSeason(): Promise<SeasonWithProjects | null> {
-  const season = await prisma.season.findFirst({
-    where: { status: { in: ['AWARDING', 'ACTIVE', 'UPCOMING', 'ARCHIVED'] } },
-    orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+/** 按状态查找最新届次（含项目列表） */
+async function findSeasonByStatus(status: string) {
+  return prisma.season.findFirst({
+    where: { status },
+    orderBy: { createdAt: 'desc' },
     include: {
       projects: {
         where: { isActive: true },
@@ -51,6 +51,17 @@ export async function getActiveSeason(): Promise<SeasonWithProjects | null> {
       },
     },
   })
+}
+
+/** 获取当前活跃届次，优先级：AWARDING > ACTIVE > UPCOMING > ARCHIVED */
+export async function getActiveSeason(): Promise<SeasonWithProjects | null> {
+  // 按显式优先级依次查找，不依赖字母序
+  const season =
+    (await findSeasonByStatus('AWARDING')) ??
+    (await findSeasonByStatus('ACTIVE')) ??
+    (await findSeasonByStatus('UPCOMING')) ??
+    (await findSeasonByStatus('ARCHIVED'))
+
   return season as SeasonWithProjects | null
 }
 
