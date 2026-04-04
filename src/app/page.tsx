@@ -59,7 +59,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* ── 1. Banner ── */}
-      <section className="relative flex min-h-[60vh] flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-indigo-700 to-purple-700 px-4 py-20 text-center text-white">
+      <section className="relative z-0 flex min-h-[60vh] flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-indigo-700 to-purple-700 px-4 py-20 text-center text-white">
         <div className="max-w-3xl">
           {season && (
             <div className="mb-4">
