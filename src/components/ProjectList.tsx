@@ -19,7 +19,7 @@ function FilterBar({
   onSortChange: (v: SortOrder) => void
 }) {
   return (
-    <div className="flex flex-wrap gap-3 items-center">
+    <div className="relative flex flex-wrap gap-3 items-center">
       <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
         {[
           { value: 'all' as AwardFilter, label: '全部' },
