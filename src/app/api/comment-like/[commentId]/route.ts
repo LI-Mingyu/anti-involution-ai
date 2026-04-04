@@ -21,6 +21,14 @@ export async function POST(
   }
 
   try {
+    // 前置校验：评论必须存在且未被隐藏
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+    })
+    if (!comment || comment.isHidden) {
+      return NextResponse.json({ error: '评论不存在' }, { status: 404 })
+    }
+
     // 先查询当前状态，再决定操作，避免用异常做业务流程控制
     const existing = await prisma.commentLike.findUnique({
       where: { commentId_fingerprint: { commentId, fingerprint } },
