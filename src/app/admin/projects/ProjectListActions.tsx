@@ -74,7 +74,7 @@ export default function ProjectListActions({ id, slug, isActive, likesCount }: P
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">校正原因 <span className="text-red-500">*</span></label>
-                <textarea name="reason" rows={2} required placeholder="例如：移除刷票数据" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 resize-none" />
+                <textarea name="reason" rows={2} required placeholder="例如：冷启动补热度、活动推广补票" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 resize-none" />
               </div>
               {adjustState?.error && (
                 <p className="text-xs text-red-500">{adjustState.error}</p>
